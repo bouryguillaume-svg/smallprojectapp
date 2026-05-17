@@ -169,7 +169,7 @@ li button {
 
       // Fetches all expenses from the server and display them in the list
 function loadExpenses() {
-  fetch('http://localhost:3000/expenses')
+  fetch('/expenses')
   .then(function(response){
     return response.json();
   })
@@ -223,7 +223,7 @@ function addExpense() {
     return;
   }
 
-  fetch('http://localhost:3000/expenses', {
+  fetch('/expenses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ desc, amount, cat, date })
@@ -240,7 +240,7 @@ function addExpense() {
 
 // Sends a delete request to the server for the given expense id
 function deleteExpense(id) {
-  fetch('http://localhost:3000/expenses/' + id, {
+  fetch('/expenses/' + id, {
     method: 'DELETE'
   })
   .then(function() {
