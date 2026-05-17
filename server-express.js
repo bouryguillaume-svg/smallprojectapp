@@ -91,7 +91,10 @@ After the JSON block, write a friendly confirmation message.`,
 
   const text = response.content[0].text;
 
-    // Find ALL JSON blocks in Claude's response and execute each one
+  // Strip JSON blocks from the reply so only the friendly text is shown
+  const cleanText = text.replace(/\{[\s\S]*?\}/g, '').trim();
+
+  // Find ALL JSON blocks in Claude's response and execute each one
   const jsonMatches = text.match(/\{[\s\S]*?\}/g) || [];
 
   for (const match of jsonMatches) {
@@ -112,7 +115,7 @@ After the JSON block, write a friendly confirmation message.`,
     }
   }
 
-  res.json({ reply: text });
+  res.json({ reply: cleanText });
   
 });
 
