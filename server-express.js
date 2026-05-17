@@ -85,14 +85,18 @@ When the user wants to delete an expense, respond with a JSON block like this:
 {"action": "delete", "id": 3}
 
 Categories must be one of: Food, Transport, Housing, Health, Entertainment, Shopping, Other.
-After the JSON block, write a friendly confirmation message.`,
+After the JSON block, write a friendly confirmation message. Do not use markdown formatting.`,
     messages: [{ role: 'user', content: message }]
   });
 
   const text = response.content[0].text;
 
-  // Strip JSON blocks from the reply so only the friendly text is shown
-  const cleanText = text.replace(/\{[\s\S]*?\}/g, '').trim();
+  // Strip JSON blocks and markdown code fences from the reply
+  const cleanText = text
+    .replace(/```json[\s\S]*?```/g, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/\{[\s\S]*?\}/g, '')
+    .trim();
 
   // Find ALL JSON blocks in Claude's response and execute each one
   const jsonMatches = text.match(/\{[\s\S]*?\}/g) || [];
