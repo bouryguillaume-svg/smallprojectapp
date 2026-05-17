@@ -91,30 +91,29 @@ After the JSON block, write a friendly confirmation message.`,
 
   const text = response.content[0].text;
 
-  // Try to extract a JSON action from Claude's response
-  const jsonMatch = text.match(/\{[\s\S]*?\}/);
+    // Find ALL JSON blocks in Claude's response and execute each one
+  const jsonMatches = text.match(/\{[\s\S]*?\}/g) || [];
 
-  if (jsonMatch) {
+  for (const match of jsonMatches) {
     try {
-      const action = JSON.parse(jsonMatch[0]);
+      const action = JSON.parse(match);
 
       if (action.action === 'add') {
-        const result = db.prepare(
+        db.prepare(
           'INSERT INTO expenses (desc, amount, cat, date) VALUES (?, ?, ?, ?)'
         ).run(action.desc, action.amount, action.cat, action.date);
-        return res.json({ reply: text, action: 'add', id: result.lastInsertRowid });
       }
 
       if (action.action === 'delete') {
         db.prepare('DELETE FROM expenses WHERE id = ?').run(action.id);
-        return res.json({ reply: text, action: 'delete' });
       }
     } catch(e) {
-      // JSON parsing failed — just return Claude's text response
+      // JSON parsing failed — skip this block
     }
   }
 
   res.json({ reply: text });
+  
 });
 
 // Start the server
