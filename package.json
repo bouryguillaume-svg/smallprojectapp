@@ -3,6 +3,7 @@
     "start": "node server-express.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.96.0",
     "better-sqlite3": "^12.9.0",
     "express": "^5.2.1"
   }

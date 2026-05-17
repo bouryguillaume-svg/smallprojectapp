@@ -110,6 +110,20 @@ li button {
 
  <h1>Expense Tracker</h1>
 
+  <!-- Chat interface -->
+  <div class="card">
+    <h2>Ask Claude</h2>
+    <p style="color:#888; font-size:0.85rem; margin:0 0 1rem 0;">
+      e.g. "Add a €12 lunch expense from today" or "Delete the bus ticket expense"
+    </p>
+    <div style="display:flex; gap:0.5rem;">
+      <input id="chat-input" type="text" placeholder="Type a message..." 
+        style="flex:1; max-width:none;" onkeydown="if(event.key==='Enter') sendChat()" />
+      <button onclick="sendChat()" style="margin-top:0;">Send</button>
+    </div>
+    <div id="chat-reply" style="margin-top:1rem; font-size:0.9rem; color:#444;"></div>
+  </div>
+
  <!-- Summary bar-->
 
 <div class="summary">

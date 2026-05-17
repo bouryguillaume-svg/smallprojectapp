@@ -1,5 +1,7 @@
 const express = require('express');
 const Database = require('better-sqlite3');
+const Anthropic = require('@anthropic-ai/sdk');
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const app = express();
 const PORT = 3000;
@@ -56,6 +58,63 @@ app.delete('/expenses/:id', function(req, res) {
   const id = req.params.id;
   db.prepare('DELETE FROM expenses WHERE id = ?').run(id);
   res.json({ message: `Expense ${id} deleted.` });
+});
+
+// ── POST /chat ──
+// Receives a natural language message, sends it to Claude along with
+// the current expense list, and lets Claude add or delete expenses.
+app.post('/chat', async function(req, res) {
+  const { message } = req.body;
+
+  // Fetch current expenses to give Claude context
+  const expenses = db.prepare('SELECT * FROM expenses ORDER BY date DESC').all();
+
+  const response = await client.messages.create({
+    model: 'claude-opus-4-5',
+    max_tokens: 1024,
+    system: `You are an expense tracker assistant. You help users add and delete expenses.
+Current expenses in the database:
+${JSON.stringify(expenses, null, 2)}
+
+Today's date is: ${new Date().toISOString().slice(0, 10)}
+
+When the user wants to add an expense, respond with a JSON block like this:
+{"action": "add", "desc": "Groceries", "amount": 45.50, "cat": "Food", "date": "2026-05-10"}
+
+When the user wants to delete an expense, respond with a JSON block like this:
+{"action": "delete", "id": 3}
+
+Categories must be one of: Food, Transport, Housing, Health, Entertainment, Shopping, Other.
+After the JSON block, write a friendly confirmation message.`,
+    messages: [{ role: 'user', content: message }]
+  });
+
+  const text = response.content[0].text;
+
+  // Try to extract a JSON action from Claude's response
+  const jsonMatch = text.match(/\{[\s\S]*?\}/);
+
+  if (jsonMatch) {
+    try {
+      const action = JSON.parse(jsonMatch[0]);
+
+      if (action.action === 'add') {
+        const result = db.prepare(
+          'INSERT INTO expenses (desc, amount, cat, date) VALUES (?, ?, ?, ?)'
+        ).run(action.desc, action.amount, action.cat, action.date);
+        return res.json({ reply: text, action: 'add', id: result.lastInsertRowid });
+      }
+
+      if (action.action === 'delete') {
+        db.prepare('DELETE FROM expenses WHERE id = ?').run(action.id);
+        return res.json({ reply: text, action: 'delete' });
+      }
+    } catch(e) {
+      // JSON parsing failed — just return Claude's text response
+    }
+  }
+
+  res.json({ reply: text });
 });
 
 // Start the server
