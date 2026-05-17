@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node server-express.js"
+  },
   "dependencies": {
     "better-sqlite3": "^12.9.0",
     "express": "^5.2.1"
