@@ -264,6 +264,29 @@ function deleteExpense(id) {
   });
 }
 
+// Sends the user's message to the server which forwards it to Claude
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const reply = document.getElementById('chat-reply');
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  reply.textContent = 'Thinking...';
+  input.value = '';
+
+  fetch('/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message })
+  })
+  .then(function(response) { return response.json(); })
+  .then(function(data) {
+    reply.textContent = data.reply;
+    loadExpenses();
+  });
+}
+
     </script>
 
 </body>
